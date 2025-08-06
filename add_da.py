@@ -55,6 +55,7 @@ except (LDAPSocketOpenError, LDAPException) as e:
     sys.exit(f"[!] Bind failed: {e}")
 
 user_dn, da_dn = dns(args.domain, args.new_user, args.ou)
+dbg(f"User DN: {user_dn}, DA DN: {da_dn}")
 pwd = args.new_pass or strong_pwd()
 print(f"[+] Using password: {pwd}")
 

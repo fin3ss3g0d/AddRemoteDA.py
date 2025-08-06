@@ -16,7 +16,7 @@ UAC_DISABLED   = NORMAL_ACCOUNT | ACCOUNTDISABLE      # 514
 UAC_ENABLED    = NORMAL_ACCOUNT                       # 512 (pwd will expire)
 
 # ───── helper funcs ──────────────────────────────────────────────────────────
-def strong_pwd(n=16):
+def strong_pwd(n=50):
     pools = [string.ascii_uppercase, string.ascii_lowercase,
              string.digits, "!@#$%^&*()-_=+[]{}"]
     while True:
@@ -56,6 +56,8 @@ except (LDAPSocketOpenError, LDAPException) as e:
 
 user_dn, da_dn = dns(args.domain, args.new_user, args.ou)
 pwd = args.new_pass or strong_pwd()
+print(f"[+] Using password: {pwd}")
+
 attrs = {"objectClass": ["user"], "sAMAccountName": args.new_user,
          "userPrincipalName": f"{args.new_user}@{args.domain}",
          "userAccountControl": UAC_DISABLED}

